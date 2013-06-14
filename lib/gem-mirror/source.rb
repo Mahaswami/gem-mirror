@@ -51,10 +51,20 @@ module GemMirror
     # @return [String]
     #
     def fetch_specification(name, version)
+      r = nil
+      begin
       url = host + "/quick/#{Configuration.marshal_identifier}" +
         "/#{name}-#{version}.gemspec.rz"
 
-      return http_get(url).body
+      r = http_get(url).body
+      rescue => msg
+        puts "retrying with JAVA"
+        url = host + "/quick/#{Configuration.marshal_identifier}" +
+          "/#{name}-#{version}-java.gemspec.rz"
+        r = http_get(url).body
+      end
+      raise $!.message if r.nil?
+      r
     end
 
     ##
@@ -65,7 +75,18 @@ module GemMirror
     # @return [String]
     #
     def fetch_gem(name, version)
-      return http_get(host + "/gems/#{name}-#{version}.gem").body
+      r = nil
+      java  = false
+      begin
+      puts "Fetching #{host + "/gems/#{name}-#{version}.gem"}"
+      r  = http_get(host + "/gems/#{name}-#{version}.gem").body 
+      rescue  => msg
+        puts "retrying with JAVA"
+        r  = http_get(host + "/gems/#{name}-#{version}-java.gem").body rescue nil
+        java = true
+      end
+      raise $!.message if r.nil?
+      [r, java]
     end
 
     ##

@@ -52,10 +52,10 @@ module GemMirror
           end
 
           logger.info("Fetching #{filename}")
-
-          gemfile = fetch_gem(gem, version)
+          gemfile, java = fetch_gem(gem, version)
 
           if gemfile
+            filename.gsub!(".gem", "-java.gem") if java
             configuration.mirror_directory.add_file(filename, gemfile)
           end
         end
@@ -120,10 +120,11 @@ module GemMirror
     #
     def fetch_gem(gem, version)
       gemfile  = nil
+      java = false
       filename = gem.filename(version)
 
       begin
-        gemfile = source.fetch_gem(gem.name, version)
+        gemfile, java = source.fetch_gem(gem.name, version)
       rescue => e
         logger.error("Failed to retrieve #{filename}: #{e.message}")
         logger.debug("Adding #{filename} to the list of ignored Gems")
@@ -131,7 +132,7 @@ module GemMirror
         configuration.ignore_gem(gem.name, version)
       end
 
-      return gemfile
+      return gemfile, java
     end
 
     ##

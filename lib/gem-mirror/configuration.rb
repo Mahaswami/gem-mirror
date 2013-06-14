@@ -102,6 +102,12 @@ module GemMirror
     # @return [TrueClass|FalseClass]
     #
     def ignore_gem?(name, version)
+      # Only cache the one's explicitly mentioned
+      if sources[0].gems.find{|g| g.name == name}.nil?
+        return true
+      else
+        return false
+      end
       return ignored_gems[name].include?(version)
     end
 
